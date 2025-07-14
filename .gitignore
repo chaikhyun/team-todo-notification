@@ -1,11 +1,31 @@
-HELP.md
-.gradle
+# === Java & Gradle ===
+*.class
+*.jar
+*.war
+*.log
+*.tmp
+*.hprof
+
+.gradle/
 build/
 !gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
 
-### STS ###
+# === Spring Boot ===
+*.iml
+application.properties
+application.yml
+application-*.yml
+application-*.properties
+.env
+
+# === IntelliJ IDEA ===
+.idea/
+*.iws
+*.ipr
+*.iml
+out/
+
+# === STS (Spring Tool Suite) ===
 .apt_generated
 .classpath
 .factorypath
@@ -14,24 +34,17 @@ build/
 .springBeans
 .sts4-cache
 bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
 
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-
-### VS Code ###
+# === VS Code ===
 .vscode/
+
+# === NetBeans ===
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# === OS ===
+.DS_Store
+Thumbs.db
