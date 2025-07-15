@@ -71,4 +71,16 @@ public class UserService {
         }
         return new UserResponse(user.getUserId(), user.getUsername(), user.getEmail());
     }
+
+    public String authenticate(String email, String rawPassword) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("이메일 또는 비밀번호가 잘못되었습니다."));
+
+        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
+            throw new IllegalArgumentException("이메일 또는 비밀번호가 잘못되었습니다.");
+        }
+
+        return user.getUsername(); // 또는 userId 등 토큰에 포함하고 싶은 값
+    }
+
 }
