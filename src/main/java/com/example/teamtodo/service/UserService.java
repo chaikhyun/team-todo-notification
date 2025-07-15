@@ -16,15 +16,22 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailVerificationService emailVerificationService;
 
     public UserService(UserRepository userRepository,
-                       PasswordEncoder passwordEncoder) {
+                       PasswordEncoder passwordEncoder,
+                       EmailVerificationService emailVerificationService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.emailVerificationService = emailVerificationService;
     }
 
     @Transactional
     public UserResponse signup(UserSignupRequest request) {
+        if (!emailVerificationService.isEmailVerified(request.getEmail())) {
+            throw new IllegalStateException("이메일 인증이 완료되지 않았습니다.");
+        }
+
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new DuplicateResourceException("이미 존재하는 사용자명입니다.");
         }
@@ -32,7 +39,6 @@ public class UserService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new DuplicateResourceException("이미 존재하는 이메일입니다.");
         }
-
 
         String encodedPassword = passwordEncoder.encode(request.getPassword());
 
@@ -48,24 +54,21 @@ public class UserService {
 
     @Transactional
     public UserResponse processOAuthPostLogin(String provider, String providerId, String email, String username) {
-        // 이미 가입된 사용자라면 조회
         Optional<User> userOpt = userRepository.findByProviderAndProviderId(provider, providerId);
 
         User user;
         if (userOpt.isPresent()) {
             user = userOpt.get();
         } else {
-            // 새로 가입 처리
             user = new User();
             user.setProvider(provider);
             user.setProviderId(providerId);
             user.setEmail(email);
             user.setUsername(username != null ? username : email);
-            user.setPassword(""); // 소셜 로그인 회원은 비밀번호 없음
+            user.setPassword(""); // 소셜 로그인은 비밀번호 없음
 
             user = userRepository.save(user);
         }
         return new UserResponse(user.getUserId(), user.getUsername(), user.getEmail());
     }
-
 }
