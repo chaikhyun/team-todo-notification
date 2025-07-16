@@ -1,15 +1,18 @@
 package com.example.teamtodo.controller;
 
+import com.example.teamtodo.domain.User;
 import com.example.teamtodo.dto.UserLoginRequest;
 import com.example.teamtodo.dto.UserSignupRequest;
 import com.example.teamtodo.dto.UserResponse;
 import com.example.teamtodo.jwt.JwtTokenProvider;
+import com.example.teamtodo.security.CustomUserDetails;
 import com.example.teamtodo.service.AuthService;
 import com.example.teamtodo.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -61,6 +64,13 @@ public class UserController {
         String token = jwtTokenProvider.generateToken(user.getUsername());
 
         return ResponseEntity.ok().body(token);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        User user = userDetails.getUser();
+        UserResponse response = new UserResponse(user.getUserId(), user.getUsername(), user.getEmail());
+        return ResponseEntity.ok(response);
     }
 
 
