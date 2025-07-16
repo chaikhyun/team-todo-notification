@@ -17,7 +17,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleDuplicateResource(DuplicateResourceException ex) {
         Map<String, String> error = new HashMap<>();
         error.put("error", ex.getMessage());
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST); // 400으로 응답
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
 
     // 2. @Valid 실패 예외

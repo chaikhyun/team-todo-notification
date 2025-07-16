@@ -18,6 +18,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final EmailVerificationService emailVerificationService;
 
+
     public UserService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
                        EmailVerificationService emailVerificationService) {
@@ -54,23 +55,35 @@ public class UserService {
 
     @Transactional
     public UserResponse processOAuthPostLogin(String provider, String providerId, String email, String username) {
+        // 1. provider + providerId로 기존 사용자 조회
         Optional<User> userOpt = userRepository.findByProviderAndProviderId(provider, providerId);
 
-        User user;
         if (userOpt.isPresent()) {
-            user = userOpt.get();
-        } else {
-            user = new User();
-            user.setProvider(provider);
-            user.setProviderId(providerId);
-            user.setEmail(email);
-            user.setUsername(username != null ? username : email);
-            user.setPassword(""); // 소셜 로그인은 비밀번호 없음
-
-            user = userRepository.save(user);
+            return new UserResponse(
+                    userOpt.get().getUserId(),
+                    userOpt.get().getUsername(),
+                    userOpt.get().getEmail()
+            );
         }
+
+        // 2. 이메일 중복 여부 확인
+        if (userRepository.existsByEmail(email)) {
+            throw new DuplicateResourceException("이미 해당 이메일로 가입된 계정이 존재합니다.");
+        }
+
+        // 3. 신규 사용자 생성
+        User user = new User();
+        user.setProvider(provider);
+        user.setProviderId(providerId);
+        user.setEmail(email);
+        user.setUsername(username != null ? username : email);
+        user.setPassword(""); // 소셜 로그인은 비밀번호 없음
+
+        user = userRepository.save(user);
+
         return new UserResponse(user.getUserId(), user.getUsername(), user.getEmail());
     }
+
 
     public String authenticate(String email, String rawPassword) {
         User user = userRepository.findByEmail(email)

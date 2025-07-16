@@ -18,6 +18,10 @@ public class JwtTokenProvider {
 
     private final long expiration = 1000L * 60 * 60 * 24; // 24시간
 
+    // 리프레시 토큰 유효기간: 7일
+    private final long refreshExpiration = 1000L * 60 * 60 * 24 * 7; // 7일
+
+
     // 토큰 생성
     public String generateToken(String username) {
         Date now = new Date();
@@ -60,4 +64,25 @@ public class JwtTokenProvider {
         }
         return null;
     }
+
+    // Refresh 토큰 생성
+    public String generateRefreshToken(String username) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + refreshExpiration);
+
+        return Jwts.builder()
+                .setSubject(username)
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(SignatureAlgorithm.HS256, secretKey.getBytes())
+                .compact();
+    }
+
+    public long getRefreshTokenValidity() {
+        return refreshExpiration;
+    }
+
+
+
+
 }
