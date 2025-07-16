@@ -4,6 +4,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.HashMap;
@@ -44,5 +46,17 @@ public class GlobalExceptionHandler {
         error.put("error", ex.getMessage());
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
+
+    // 토큰블랙리스트 뭐시기..
+    @ExceptionHandler(TokenLogoutException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ResponseBody
+    public Map<String, String> handleTokenLogoutException(TokenLogoutException ex) {
+        return Map.of(
+                "error", "UNAUTHORIZED",
+                "message", ex.getMessage()
+        );
+    }
+
 
 }

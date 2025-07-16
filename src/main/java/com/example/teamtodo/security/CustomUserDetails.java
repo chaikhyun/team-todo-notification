@@ -29,7 +29,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public String getUsername() {
-        return user.getUsername(); // subject로 들어가는 값
+        return user.getEmail(); // subject로 들어가는 값
     }
 
     @Override public boolean isAccountNonExpired() { return true; }

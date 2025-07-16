@@ -4,10 +4,12 @@ import com.example.teamtodo.jwt.JwtTokenProvider;
 import com.example.teamtodo.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -16,6 +18,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final RedisTemplate<String, String> redisTemplate;
 
     @PostMapping("/refresh")
     public ResponseEntity<?> refreshAccessToken(@RequestBody Map<String, String> payload) {
@@ -44,7 +47,7 @@ public class AuthController {
      */
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request) {
-        String token = jwtTokenProvider.resolveToken(request); // 헤더에서 토큰 추출
+        String token = jwtTokenProvider.resolveToken(request);
 
         if (token == null || !jwtTokenProvider.validateToken(token)) {
             return ResponseEntity.badRequest().body("유효하지 않은 토큰입니다.");
@@ -52,9 +55,15 @@ public class AuthController {
 
         String username = jwtTokenProvider.getUsernameFromToken(token);
 
-        // Redis에서 refreshToken 삭제
+        // 1. RefreshToken 삭제
         authService.deleteRefreshToken(username);
+
+        // 2. AccessToken 블랙리스트 등록
+        long expiration = jwtTokenProvider.getExpiration(token); // 토큰 만료까지 남은 시간(ms)
+        redisTemplate.opsForValue().set(token, "logout", expiration, TimeUnit.MILLISECONDS);
 
         return ResponseEntity.ok("로그아웃 성공");
     }
+
+
 }

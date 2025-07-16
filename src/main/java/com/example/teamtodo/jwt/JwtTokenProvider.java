@@ -23,15 +23,15 @@ public class JwtTokenProvider {
 
 
     // 토큰 생성
-    public String generateToken(String username) {
+    public String generateToken(String email) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expiration);
 
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(email)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(SignatureAlgorithm.HS256, secretKey.getBytes()) // 문자열을 byte[]로 넘겨서 안전하게
+                .signWith(SignatureAlgorithm.HS256, secretKey.getBytes())
                 .compact();
     }
 
@@ -66,12 +66,12 @@ public class JwtTokenProvider {
     }
 
     // Refresh 토큰 생성
-    public String generateRefreshToken(String username) {
+    public String generateRefreshToken(String email) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + refreshExpiration);
 
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(email)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(SignatureAlgorithm.HS256, secretKey.getBytes())
@@ -82,6 +82,15 @@ public class JwtTokenProvider {
         return refreshExpiration;
     }
 
+    // 토큰 유효시간 추출
+    public long getExpiration(String token) {
+        return Jwts.parser()
+                .setSigningKey(secretKey.getBytes())
+                .parseClaimsJws(token)
+                .getBody()
+                .getExpiration()
+                .getTime() - System.currentTimeMillis();
+    }
 
 
 

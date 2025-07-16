@@ -4,7 +4,9 @@ import com.example.teamtodo.domain.User;
 import com.example.teamtodo.dto.UserSignupRequest;
 import com.example.teamtodo.dto.UserResponse;
 import com.example.teamtodo.exception.DuplicateResourceException;
+import com.example.teamtodo.exception.NotFoundException;
 import com.example.teamtodo.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,20 +14,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailVerificationService emailVerificationService;
 
-
-    public UserService(UserRepository userRepository,
-                       PasswordEncoder passwordEncoder,
-                       EmailVerificationService emailVerificationService) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.emailVerificationService = emailVerificationService;
-    }
 
     @Transactional
     public UserResponse signup(UserSignupRequest request) {
@@ -85,7 +80,7 @@ public class UserService {
     }
 
 
-    public String authenticate(String email, String rawPassword) {
+    public User authenticate(String email, String rawPassword) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("이메일 또는 비밀번호가 잘못되었습니다."));
 
@@ -93,7 +88,39 @@ public class UserService {
             throw new IllegalArgumentException("이메일 또는 비밀번호가 잘못되었습니다.");
         }
 
-        return user.getUsername(); // 또는 userId 등 토큰에 포함하고 싶은 값
+        return user;
     }
 
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+
+    @Transactional
+    public void updateUsername(String email, String newUsername) {
+        System.out.println("updateUsername 호출, email = " + email);
+        if (userRepository.existsByUsername(newUsername)) {
+            throw new DuplicateResourceException("이미 존재하는 닉네임입니다.");
+        }
+
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        System.out.println("userOpt.isPresent() = " + userOpt.isPresent());
+
+        User user = userOpt.orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다."));
+
+        user.setUsername(newUsername);
+    }
+
+
+    @Transactional
+    public void deleteUser(String email) {
+        try {
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다."));
+            userRepository.delete(user);
+        } catch (Exception e) {
+            e.printStackTrace(); // 로그 출력
+            throw e; // 다시 던져서 컨트롤러에서 처리
+        }
+    }
 }
