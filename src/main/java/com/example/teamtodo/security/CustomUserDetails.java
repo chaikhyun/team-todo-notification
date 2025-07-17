@@ -17,19 +17,23 @@ public class CustomUserDetails implements UserDetails {
         this.user = user;
     }
 
+    public Long getUserId() {
+        return user.getUserId();
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.emptyList(); // 권한 처리 안할 거면 비워도 됨
+        return Collections.emptyList();
     }
 
     @Override
     public String getPassword() {
-        return user.getPassword(); // JWT 인증 시 사용하지 않음
+        return user.getPassword();
     }
 
     @Override
     public String getUsername() {
-        return user.getEmail(); // subject로 들어가는 값
+        return user.getEmail(); // JWT subject로 사용
     }
 
     @Override public boolean isAccountNonExpired() { return true; }

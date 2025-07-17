@@ -2,15 +2,16 @@ package com.example.teamtodo.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "user_team")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Table(name = "user_team")
 public class UserTeam {
 
     @Id
@@ -25,6 +26,10 @@ public class UserTeam {
     @JoinColumn(name = "team_id", nullable = false)
     private Team team;
 
+    @Column(nullable = false)
+    private String role; // "OWNER" 또는 "MEMBER"
+
+    @Column(nullable = false)
     private LocalDateTime joinedAt;
 
     @PrePersist
