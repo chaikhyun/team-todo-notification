@@ -3,6 +3,8 @@ package com.example.teamtodo.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "team")
@@ -13,6 +15,9 @@ import java.time.LocalDateTime;
 @Builder
 public class Team {
 
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long teamId;
@@ -20,9 +25,15 @@ public class Team {
     @Column(nullable = false, length = 100)
     private String name;
 
-    private LocalDateTime createdAt;
 
-    private LocalDateTime updatedAt;
+    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TeamInvite> teamInvites = new ArrayList<>();
+
+    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserTeam> userTeams = new ArrayList<>();
+
+    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Todo> todos = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {
